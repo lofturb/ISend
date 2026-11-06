@@ -1,0 +1,16 @@
+* text=auto
+*.m text eol=lf
+*.h text eol=lf
+Makefile text eol=lf
+control text eol=lf
+*.plist text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.png binary
+iTunesArtwork binary
+*.ipa binary

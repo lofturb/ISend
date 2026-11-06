@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ISend">
+<meta name="format-detection" content="telephone=no">
+<title>ISend</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 20V5"></path><path d="M4 9l4-4 4 4"></path>
+          <path d="M16 4v15"></path><path d="M12 15l4 4 4-4"></path>
+        </svg>
+      </span>
+      <div class="brand-text">
+        <span class="brand-name">ISend</span>
+        <span class="brand-sub" id="deviceName">iPad</span>
+      </div>
+    </div>
+    <div class="net" id="netInfo" title="Dirección de esta sesión">—</div>
+  </header>
+
+  <main>
+
+    <section class="card dropzone" id="dropzone" tabindex="0" role="button" aria-label="Subir archivos al iPad">
+      <input type="file" id="fileInput" multiple class="visually-hidden">
+      <input type="file" id="photoInput" accept="image/*" multiple class="visually-hidden">
+      <input type="file" id="folderInput" webkitdirectory directory multiple class="visually-hidden">
+
+      <div class="drop-icon" aria-hidden="true">↑</div>
+      <h1>Envía archivos al iPad</h1>
+      <p class="drop-hint">Arrastra archivos aquí o elige una opción. También puedes soltar una carpeta entera en el ordenador.</p>
+
+      <div class="buttons">
+        <button class="btn primary" id="pickFiles" type="button">Elegir archivos</button>
+        <button class="btn" id="pickPhotos" type="button">Fotos</button>
+        <button class="btn" id="pickFolder" type="button">Carpeta</button>
+      </div>
+
+      <p class="dest">Destino: <code id="destPath">/</code></p>
+      <div class="queue" id="queue"></div>
+    </section>
+
+    <section class="card files-card">
+      <div class="card-head">
+        <div class="crumbs-wrap">
+          <nav class="crumbs" id="crumbs" aria-label="Ruta de carpetas"></nav>
+        </div>
+        <div class="tools">
+          <button class="icon-btn" id="newFolder" type="button" title="Nueva carpeta" aria-label="Nueva carpeta">+</button>
+          <button class="icon-btn" id="refresh" type="button" title="Actualizar" aria-label="Actualizar">⟳</button>
+        </div>
+      </div>
+
+      <div class="search-row">
+        <input type="search" id="filter" placeholder="Filtrar archivos…" autocomplete="off" aria-label="Filtrar archivos">
+        <span class="free" id="freeSpace"></span>
+      </div>
+
+      <ul class="file-list" id="fileList"></ul>
+
+      <div class="empty" id="emptyState" hidden>
+        <strong>Esta carpeta está vacía</strong>
+        <span>Envía archivos desde arriba o crea una carpeta con +.</span>
+      </div>
+
+      <div class="loading" id="loading" hidden>Cargando…</div>
+    </section>
+
+    <footer class="footer">
+      <span id="stats">—</span>
+      <span class="dot-sep">·</span>
+      <span>ISend <span id="version"></span></span>
+    </footer>
+
+  </main>
+
+  <button class="fab" id="fabUpload" type="button" aria-label="Subir archivos">↑</button>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</div>
+
+<noscript>
+  <p style="color:#fff;padding:20px;font-family:sans-serif">ISend necesita JavaScript para funcionar.</p>
+</noscript>
+
+<script src="/app.js"></script>
+</body>
+</html>
