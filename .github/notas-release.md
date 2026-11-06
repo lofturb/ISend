@@ -1,4 +1,4 @@
-# ISend 1.0.2
+# ISend 1.0.3
 
 Transferencia de archivos por Wi-Fi entre el iPad y cualquier navegador.
 
@@ -11,9 +11,10 @@ Transferencia de archivos por Wi-Fi entre el iPad y cualquier navegador.
 - Código QR en el iPad para abrir la interfaz desde el móvil sin escribir la IP.
 - Sin nube, sin cuentas y sin instalar nada en el ordenador.
 
-## Cambios de la 1.0.2
+## Cambios de la 1.0.3
 
 - **Arreglada la subida de archivos.** El servidor escribía en disco con `send()`, que solo funciona con sockets: fallaba con `ENOTSOCK` y abortaba cualquier subida con "error de red" en el navegador. Ahora usa `write()`.
+- **Arreglado el socket de cada conexión.** En iOS el socket aceptado heredaba `O_NONBLOCK` del socket de escucha, así que `recv()` devolvía `EAGAIN` en cuanto el cuerpo de una subida no llegaba en el mismo bloque que las cabeceras. Ahora se pone en modo bloqueante y los tiempos de espera funcionan de verdad.
 - La versión que muestra la app y la API se lee del `Info.plist`, así que ya no puede quedarse desfasada del build instalado.
 - Si una subida se corta, la respuesta incluye un código de error numérico para poder diagnosticarla.
 - **La pantalla ya no se bloquea** mientras el servidor está activo. Antes, el bloqueo automático a los 2 minutos suspendía la app y cortaba la transferencia en curso.

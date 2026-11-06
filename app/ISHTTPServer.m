@@ -311,6 +311,14 @@ static NSString *ISPercentEncode(NSString *value) {
         int client = accept(_listenFD, NULL, NULL);
         if (client < 0) { break; }
 
+        // En BSD/Darwin el socket aceptado hereda O_NONBLOCK del de escucha.
+        // Sin esto, recv() devuelve EAGAIN en cuanto el cuerpo de una subida
+        // no llega en el mismo bloque que las cabeceras.
+        int clientFlags = fcntl(client, F_GETFL, 0);
+        if (clientFlags >= 0) {
+            fcntl(client, F_SETFL, clientFlags & ~O_NONBLOCK);
+        }
+
         int one = 1;
         setsockopt(client, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof(one));
         setsockopt(client, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
