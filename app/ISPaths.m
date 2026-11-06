@@ -17,6 +17,10 @@ NSString *ISAppVersion(void) {
     return version;
 }
 
+NSString *ISBuildStamp(void) {
+    return @__DATE__ " " @__TIME__;
+}
+
 NSString *ISAppDocumentsDirectory(void) {
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
                                                          NSUserDomainMask, YES);

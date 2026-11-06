@@ -4,6 +4,11 @@
 // Version real de la app, leida de Info.plist (CFBundleShortVersionString).
 NSString *ISAppVersion(void);
 
+// Marca de compilacion (fecha y hora del build) grabada en el binario. El
+// Info.plist se reemplaza al instalar aunque el proceso viejo siga vivo, asi
+// que la version sola no dice que codigo esta corriendo; esto si.
+NSString *ISBuildStamp(void);
+
 // Rutas y utilidades compartidas por la app y el servidor.
 
 NSString *ISAppDocumentsDirectory(void);

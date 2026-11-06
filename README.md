@@ -137,7 +137,7 @@ Todas las rutas devuelven JSON salvo las descargas y los recursos web.
 | Método | Ruta | Descripción |
 |---|---|---|
 | `GET` | `/` | Interfaz web |
-| `GET` | `/api/info` | Dispositivo, versión, carpeta, espacio libre, contadores |
+| `GET` | `/api/info` | Dispositivo, versión, build, carpeta, espacio libre, contadores |
 | `GET` | `/api/list?path=/` | Listado de una carpeta |
 | `GET` | `/api/raw?path=/x` | Archivo en línea (previsualizar) |
 | `GET` | `/api/download?path=/x` | Archivo como descarga |

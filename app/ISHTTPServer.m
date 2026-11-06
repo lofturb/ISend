@@ -369,8 +369,11 @@ static NSString *ISPercentEncode(NSString *value) {
 
     self.requestCount = self.requestCount + 1;
 
-    if ([request.headers[@"expect"] rangeOfString:@"100-continue"
-                                          options:NSCaseInsensitiveSearch].location != NSNotFound) {
+    // Ojo: un mensaje a nil devuelve {0,0}, no NSNotFound. Sin el nil explicito
+    // se mandaba 100 Continue a todas las peticiones.
+    NSString *expect = request.headers[@"expect"];
+    if (expect && [expect rangeOfString:@"100-continue"
+                                options:NSCaseInsensitiveSearch].location != NSNotFound) {
         const char *cont = "HTTP/1.1 100 Continue\r\n\r\n";
         ISWriteAll(fd, cont, strlen(cont));
     }
@@ -447,7 +450,10 @@ static NSString *ISPercentEncode(NSString *value) {
     request.contentLength = [headers[@"content-length"] longLongValue] > 0
         ? (unsigned long long)[headers[@"content-length"] longLongValue] : 0;
     NSString *encoding = [headers[@"transfer-encoding"] lowercaseString];
-    request.chunked = [encoding rangeOfString:@"chunked"].location != NSNotFound;
+    // Igual que con expect: si no hay cabecera, rangeOfString sobre nil daba
+    // {0,0} y todo cuerpo acababa tratado como chunked (y colgado).
+    request.chunked = encoding &&
+        [encoding rangeOfString:@"chunked"].location != NSNotFound;
 
     return request;
 }
@@ -617,6 +623,7 @@ static NSString *ISPercentEncode(NSString *value) {
         @"ok": @YES,
         @"app": @"ISend",
         @"version": ISAppVersion(),
+        @"build": ISBuildStamp(),
         @"device": ISDeviceName(),
         @"host": ISLocalHostName(),
         @"root": root,
