@@ -183,9 +183,10 @@ ISend/
 
 ## Limitaciones conocidas
 
-- iOS 9 suspende la app en segundo plano: no hay transferencias en background.
+- iOS 9 suspende la app en segundo plano: no hay transferencias en background. Mientras el servidor está activo la pantalla no se bloquea, para que el bloqueo automático no corte una subida.
 - Sin autenticación ni TLS en esta versión.
 - No hay descubrimiento automático entre dispositivos (se usa IP o QR).
+- Los dos equipos tienen que estar en la misma red local: `192.168.0.x` y `192.168.1.x` no se ven aunque compartan router.
 - No se pueden descargar carpetas enteras como ZIP todavía.
 - La interfaz web es en español.
 
