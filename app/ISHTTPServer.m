@@ -77,6 +77,24 @@ static BOOL ISWriteAll(int fd, const void *bytes, NSUInteger length) {
     return YES;
 }
 
+// send() solo vale para sockets: con un descriptor de archivo falla con
+// ENOTSOCK y la subida se aborta. Para el disco hace falta write().
+static BOOL ISWriteFileAll(int fd, const void *bytes, NSUInteger length) {
+    const uint8_t *cursor = (const uint8_t *)bytes;
+    NSUInteger remaining = length;
+    while (remaining > 0) {
+        ssize_t written = write(fd, cursor, remaining);
+        if (written < 0) {
+            if (errno == EINTR) { continue; }
+            return NO;
+        }
+        if (written == 0) { return NO; }
+        cursor += written;
+        remaining -= (NSUInteger)written;
+    }
+    return YES;
+}
+
 static BOOL ISReceiveMore(int fd, NSMutableData *buffer) {
     uint8_t chunk[65536];
     ssize_t count = recv(fd, chunk, sizeof(chunk), 0);
@@ -826,7 +844,7 @@ static NSString *ISPercentEncode(NSString *value) {
             continue;
         }
         NSUInteger take = (NSUInteger)MIN((unsigned long long)buffer.length, remaining);
-        if (!ISWriteAll(out, buffer.bytes, take)) { return NO; }
+        if (!ISWriteFileAll(out, buffer.bytes, take)) { return NO; }
         [buffer replaceBytesInRange:NSMakeRange(0, take) withBytes:NULL length:0];
         remaining -= take;
         *written += take;
@@ -878,7 +896,7 @@ static NSString *ISPercentEncode(NSString *value) {
         while (remaining > 0) {
             if (buffer.length == 0 && !ISReceiveMore(fd, buffer)) { return NO; }
             NSUInteger take = (NSUInteger)MIN((unsigned long long)buffer.length, remaining);
-            if (!ISWriteAll(out, buffer.bytes, take)) { return NO; }
+            if (!ISWriteFileAll(out, buffer.bytes, take)) { return NO; }
             [buffer replaceBytesInRange:NSMakeRange(0, take) withBytes:NULL length:0];
             remaining -= take;
             *written += take;
