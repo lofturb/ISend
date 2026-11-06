@@ -3,6 +3,7 @@
 
 #import <sys/socket.h>
 #import <netinet/in.h>
+#import <netinet/tcp.h>
 #import <arpa/inet.h>
 #import <unistd.h>
 #import <fcntl.h>
@@ -164,6 +165,7 @@ static NSString *ISPercentEncode(NSString *value) {
     dispatch_source_t _source;
     dispatch_queue_t _acceptQueue;
     NSInteger _activeConnections;
+    NSMutableSet *_clientFDs;
 }
 
 - (instancetype)init {
@@ -174,6 +176,7 @@ static NSString *ISPercentEncode(NSString *value) {
         _allowUpload = YES;
         _running = NO;
         _activeConnections = 0;
+        _clientFDs = [NSMutableSet set];
     }
     return self;
 }
@@ -254,7 +257,23 @@ static NSString *ISPercentEncode(NSString *value) {
         close(_listenFD);
         _listenFD = -1;
     }
+
+    // Desbloquea los hilos que estén esperando datos: si no, siguen ocupando
+    // conexiones hasta 20 s y las peticiones nuevas se quedan sin respuesta.
+    [self closeActiveConnections];
+
     if (wasRunning) { [self notifyActivity]; }
+}
+
+- (void)closeActiveConnections {
+    NSArray *fds = nil;
+    @synchronized(self) {
+        fds = [_clientFDs allObjects];
+        [_clientFDs removeAllObjects];
+    }
+    for (NSNumber *number in fds) {
+        shutdown([number intValue], SHUT_RDWR);
+    }
 }
 
 - (void)resetCounters {
@@ -271,13 +290,15 @@ static NSString *ISPercentEncode(NSString *value) {
 
         int one = 1;
         setsockopt(client, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof(one));
+        setsockopt(client, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
 
         @synchronized(self) {
-            if (_activeConnections >= 16) {
+            if (_activeConnections >= 32) {
                 close(client);
                 continue;
             }
             _activeConnections++;
+            [_clientFDs addObject:@(client)];
         }
 
         __weak typeof(self) weakSelf = self;
@@ -286,18 +307,21 @@ static NSString *ISPercentEncode(NSString *value) {
                 __strong typeof(self) strongSelf = weakSelf;
                 if (strongSelf) { [strongSelf serveConnection:client]; }
             }
-            close(client);
             __strong typeof(self) strongSelf = weakSelf;
             if (strongSelf) {
-                @synchronized(strongSelf) { strongSelf->_activeConnections--; }
+                @synchronized(strongSelf) {
+                    [strongSelf->_clientFDs removeObject:@(client)];
+                    strongSelf->_activeConnections--;
+                }
             }
+            close(client);
         });
     }
 }
 
 - (void)serveConnection:(int)fd {
     struct timeval timeout;
-    timeout.tv_sec = 20;
+    timeout.tv_sec = 15;
     timeout.tv_usec = 0;
     setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 
@@ -307,6 +331,10 @@ static NSString *ISPercentEncode(NSString *value) {
     NSMutableData *buffer = [NSMutableData dataWithCapacity:16384];
     ISHTTPRequest *request = [self readRequestFrom:fd buffer:buffer];
     if (!request) { return; }
+
+    // Ya hay petición: el cuerpo puede tardar mucho más (un archivo grande).
+    timeout.tv_sec = 180;
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 
     self.requestCount = self.requestCount + 1;
 

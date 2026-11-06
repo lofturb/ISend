@@ -18,10 +18,13 @@ static UIImage *ISTabIcon(void (^draw)(CGContextRef context, CGSize size)) {
     return [image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
 }
 
-@implementation ISAppDelegate
+@implementation ISAppDelegate {
+    UIBackgroundTaskIdentifier _backgroundTask;
+}
 
 - (BOOL)application:(UIApplication *)application
         didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    _backgroundTask = UIBackgroundTaskInvalid;
     [ISTheme applyAppearance];
 
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
@@ -78,15 +81,33 @@ static UIImage *ISTabIcon(void (^draw)(CGContextRef context, CGSize size)) {
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application {
-    [[ISService shared] suspendForBackground];
+    // No cortamos el servidor de golpe: pedimos tiempo extra para que las
+    // transferencias ya iniciadas terminen aunque el iPad se bloquee.
+    if (_backgroundTask != UIBackgroundTaskInvalid) { return; }
+
+    __weak typeof(self) weakSelf = self;
+    _backgroundTask = [application beginBackgroundTaskWithExpirationHandler:^{
+        __strong typeof(self) strongSelf = weakSelf;
+        if (!strongSelf) { return; }
+        [[ISService shared] suspendForBackground];
+        [strongSelf endBackgroundTask];
+    }];
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {
+    [self endBackgroundTask];
     [[ISService shared] resumeAfterForeground];
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application {
     [[ISService shared] suspendForBackground];
+    [self endBackgroundTask];
+}
+
+- (void)endBackgroundTask {
+    if (_backgroundTask == UIBackgroundTaskInvalid) { return; }
+    [[UIApplication sharedApplication] endBackgroundTask:_backgroundTask];
+    _backgroundTask = UIBackgroundTaskInvalid;
 }
 
 @end

@@ -2,6 +2,8 @@
 #import "ISHTTPServer.h"
 #import "ISPaths.h"
 
+#import <UIKit/UIKit.h>
+
 NSString * const ISServiceStateDidChangeNotification = @"ISServiceStateDidChangeNotification";
 NSString * const ISServiceFilesDidChangeNotification = @"ISServiceFilesDidChangeNotification";
 
@@ -11,10 +13,15 @@ static NSString * const ISRootKey = @"isend.root";
 static NSString * const ISAllowDeleteKey = @"isend.allowDelete";
 static NSString * const ISAllowUploadKey = @"isend.allowUpload";
 
+// Intentos al reanudar el servidor tras volver del segundo plano.
+static const NSInteger ISMaxResumeAttempts = 4;
+
 @interface ISService () <ISHTTPServerDelegate>
 @property (nonatomic, strong, readwrite) ISHTTPServer *server;
 @property (nonatomic, assign, readwrite) uint16_t port;
 @property (nonatomic, copy, readwrite) NSString *rootPath;
+- (void)attemptResume:(NSInteger)attempt;
+- (void)updateIdleTimer;
 @end
 
 @implementation ISService
@@ -107,7 +114,10 @@ static NSString * const ISAllowUploadKey = @"isend.allowUpload";
     self.server.allowUpload = [[NSUserDefaults standardUserDefaults] boolForKey:ISAllowUploadKey];
 
     BOOL started = [self.server startOnPort:self.port error:error];
-    if (started) { [self postState]; }
+    if (started) {
+        [self postState];
+        [self updateIdleTimer];
+    }
     return started;
 }
 
@@ -125,6 +135,7 @@ static NSString * const ISAllowUploadKey = @"isend.allowUpload";
 - (void)stop {
     [self.server stop];
     [self postState];
+    [self updateIdleTimer];
 }
 
 - (void)disable {
@@ -144,15 +155,48 @@ static NSString * const ISAllowUploadKey = @"isend.allowUpload";
 - (void)suspendForBackground {
     if (self.server.running) { [self.server stop]; }
     [self postState];
+    [self updateIdleTimer];
 }
 
 - (void)resumeAfterForeground {
-    if (self.serverEnabled && !self.server.running) {
-        if (![self startWithError:NULL]) {
-            self.serverEnabled = NO;
-            [self postState];
-        }
+    if (!self.serverEnabled || self.server.running) {
+        [self updateIdleTimer];
+        return;
     }
+    // Tras volver del bloqueo el socket anterior puede tardar un instante en
+    // liberarse. Reintentamos en vez de apagar el servidor para siempre.
+    [self attemptResume:0];
+}
+
+- (void)attemptResume:(NSInteger)attempt {
+    if (!self.serverEnabled || self.server.running) { return; }
+
+    if ([self startWithError:NULL]) { return; }
+
+    if (attempt >= ISMaxResumeAttempts) {
+        [self postState];
+        return;
+    }
+
+    __weak typeof(self) weakSelf = self;
+    int64_t delay = (int64_t)(0.4 * (double)(attempt + 1) * (double)NSEC_PER_SEC);
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, delay), dispatch_get_main_queue(), ^{
+        __strong typeof(self) strongSelf = weakSelf;
+        if (strongSelf) { [strongSelf attemptResume:attempt + 1]; }
+    });
+}
+
+- (void)updateIdleTimer {
+    // iOS bloquea la pantalla a los dos minutos y suspende la app, lo que corta
+    // cualquier transferencia en curso. Mientras el servidor escucha, la
+    // pantalla se queda encendida.
+    dispatch_async(dispatch_get_main_queue(), ^{
+        BOOL keepAwake = self.server.running;
+        UIApplication *app = [UIApplication sharedApplication];
+        if (app && app.idleTimerDisabled != keepAwake) {
+            app.idleTimerDisabled = keepAwake;
+        }
+    });
 }
 
 #pragma mark - Ajustes

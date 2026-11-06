@@ -1,6 +1,6 @@
 Package: com.lofturb.isend
 Name: ISend
-Version: 1.0.0
+Version: 1.0.1
 Architecture: iphoneos-arm
 Description: Envia y recibe archivos por Wi-Fi desde el navegador de cualquier PC.
 Homepage: https://github.com/lofturb/ISend

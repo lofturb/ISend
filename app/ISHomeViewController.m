@@ -154,7 +154,7 @@
     self.hintLabel = [self labelWithFont:[ISTheme fontSubhead]
                                    color:[[UIColor whiteColor] colorWithAlphaComponent:0.82]
                                     text:@"Abre esta dirección en el navegador del ordenador o del móvil."];
-    self.hintLabel.numberOfLines = 2;
+    self.hintLabel.numberOfLines = 3;
 
     [text addArrangedSubview:statusRow];
     [text addArrangedSubview:self.urlLabel];
@@ -426,7 +426,7 @@
     } else if ([ISLanIPv4Address() hasPrefix:@"127."]) {
         self.hintLabel.text = @"Sin Wi-Fi. Conecta el iPad a la misma red que el ordenador.";
     } else {
-        self.hintLabel.text = @"Abre esta dirección en el navegador del ordenador o del móvil.";
+        self.hintLabel.text = @"Abre esta dirección en el navegador del ordenador o del móvil. La pantalla seguirá encendida mientras el servidor esté activo.";
     }
 
     [self.linkCopyButton setTitle:@"Copiar enlace" forState:UIControlStateNormal];

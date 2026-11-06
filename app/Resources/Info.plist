@@ -17,17 +17,17 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.0</string>
+	<string>1.0.1</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1.0.0</string>
+	<string>1.0.1</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>MinimumOSVersion</key>
 	<string>9.0</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>ISend 1.0.0 — transferencia de archivos por Wi-Fi, sin nube.</string>
+	<string>ISend 1.0.1 — transferencia de archivos por Wi-Fi, sin nube.</string>
 	<key>UIDeviceFamily</key>
 	<array>
 		<integer>2</integer>
