@@ -191,7 +191,11 @@ NSString *ISLanIPv4Address(void) {
         NSString *ip = [NSString stringWithUTF8String:buffer];
         if ([ip hasPrefix:@"127."]) { continue; }
 
-        if (strcmp(ifa->ifa_name, "en0") == 0) {
+        // Se compara con NSString y no con strcmp: el .tbd del SDK 9.3 no
+        // exporta _strcmp y el enlazador falla con "symbol(s) not found".
+        NSString *interfaceName = ifa->ifa_name
+            ? [NSString stringWithUTF8String:ifa->ifa_name] : nil;
+        if ([interfaceName isEqualToString:@"en0"]) {
             freeifaddrs(interfaces);
             return ip;
         }
