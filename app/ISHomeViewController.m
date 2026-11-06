@@ -17,7 +17,7 @@
 @property (nonatomic, strong) UIView *qrBox;
 @property (nonatomic, strong) UIImageView *qrView;
 
-@property (nonatomic, strong) UIButton *copyButton;
+@property (nonatomic, strong) UIButton *copyLinkButton;
 @property (nonatomic, strong) UIButton *shareButton;
 @property (nonatomic, strong) UIButton *toggleButton;
 
@@ -196,10 +196,10 @@
     UIView *container = [[UIView alloc] initWithFrame:CGRectZero];
     container.translatesAutoresizingMaskIntoConstraints = NO;
 
-    self.copyButton = [ISTheme buttonWithTitle:@"Copiar enlace"
+    self.copyLinkButton = [ISTheme buttonWithTitle:@"Copiar enlace"
                                     background:[ISTheme accent]
                                     foreground:[ISTheme colorWithHex:0x06281C alpha:1.0]];
-    [self.copyButton addTarget:self action:@selector(copyLink:)
+    [self.copyLinkButton addTarget:self action:@selector(copyLink:)
               forControlEvents:UIControlEventTouchUpInside];
 
     self.shareButton = [ISTheme buttonWithTitle:@"Compartir"
@@ -215,7 +215,7 @@
                 forControlEvents:UIControlEventTouchUpInside];
 
     UIStackView *row = [[UIStackView alloc] initWithArrangedSubviews:
-                        @[ self.copyButton, self.shareButton, self.toggleButton ]];
+                        @[ self.copyLinkButton, self.shareButton, self.toggleButton ]];
     row.translatesAutoresizingMaskIntoConstraints = NO;
     row.axis = UILayoutConstraintAxisHorizontal;
     row.distribution = UIStackViewDistributionFillEqually;
@@ -429,8 +429,8 @@
         self.hintLabel.text = @"Abre esta dirección en el navegador del ordenador o del móvil.";
     }
 
-    [self.copyButton setTitle:@"Copiar enlace" forState:UIControlStateNormal];
-    self.copyButton.enabled = running;
+    [self.copyLinkButton setTitle:@"Copiar enlace" forState:UIControlStateNormal];
+    self.copyLinkButton.enabled = running;
     self.shareButton.enabled = running;
 
     [self.toggleButton setTitle:(running ? @"Detener" : @"Iniciar servidor")

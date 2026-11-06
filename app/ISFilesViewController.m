@@ -7,10 +7,15 @@
 
 @interface ISPreviewItem : NSObject <QLPreviewItem>
 @property (nonatomic, strong) NSURL *previewItemURL;
-@property (nonatomic, copy) NSString *previewItemTitle;
+@property (nonatomic, copy) NSString *title;
 @end
 
 @implementation ISPreviewItem
+// QLPreviewItem declara previewItemTitle como readonly: se implementa el
+// getter a mano en vez de redeclarar la propiedad (el atributo copy choca).
+- (NSString *)previewItemTitle {
+    return self.title;
+}
 @end
 
 @interface ISFilesViewController () <UITableViewDataSource, UITableViewDelegate,
@@ -422,7 +427,7 @@
 
     ISPreviewItem *preview = [[ISPreviewItem alloc] init];
     preview.previewItemURL = full ? [NSURL fileURLWithPath:full] : nil;
-    preview.previewItemTitle = item[@"name"];
+    preview.title = item[@"name"];
     return preview;
 }
 
