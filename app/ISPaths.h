@@ -1,7 +1,8 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-extern NSString * const ISAppVersion;
+// Version real de la app, leida de Info.plist (CFBundleShortVersionString).
+NSString *ISAppVersion(void);
 
 // Rutas y utilidades compartidas por la app y el servidor.
 

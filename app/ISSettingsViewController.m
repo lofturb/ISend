@@ -185,7 +185,7 @@ typedef NS_ENUM(NSInteger, ISSettingsServerRow) {
     }
 
     if (indexPath.row == 0) {
-        UITableViewCell *cell = [self cellWithTitle:@"Versión" detail:ISAppVersion];
+        UITableViewCell *cell = [self cellWithTitle:@"Versión" detail:ISAppVersion()];
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         return cell;
     }

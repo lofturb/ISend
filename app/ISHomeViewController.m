@@ -85,7 +85,7 @@
                                      color:[ISTheme textTertiary]
                                       text:[NSString stringWithFormat:
                                             @"ISend %@ · sin nube · sin cables",
-                                            ISAppVersion]];
+                                            ISAppVersion()]];
     self.footerLabel.textAlignment = NSTextAlignmentCenter;
     [self.contentStack addArrangedSubview:self.footerLabel];
 }

@@ -97,8 +97,13 @@ static BOOL ISWriteFileAll(int fd, const void *bytes, NSUInteger length) {
 
 static BOOL ISReceiveMore(int fd, NSMutableData *buffer) {
     uint8_t chunk[65536];
+    errno = 0;
     ssize_t count = recv(fd, chunk, sizeof(chunk), 0);
-    if (count <= 0) { return NO; }
+    if (count < 0) { return NO; }
+    if (count == 0) {
+        errno = EPIPE;  // el otro extremo cerro la conexion
+        return NO;
+    }
     [buffer appendBytes:chunk length:(NSUInteger)count];
     return YES;
 }
@@ -534,7 +539,7 @@ static NSString *ISPercentEncode(NSString *value) {
             head:(BOOL)head {
     NSMutableString *header = [NSMutableString string];
     [header appendFormat:@"HTTP/1.1 %d %@\r\n", status, ISStatusText(status)];
-    [header appendFormat:@"Server: ISend/%@\r\n", ISAppVersion];
+    [header appendFormat:@"Server: ISend/%@\r\n", ISAppVersion()];
     [header appendFormat:@"Date: %@\r\n", ISHTTPDate()];
     [header appendFormat:@"Content-Type: %@\r\n", contentType ?: @"text/plain; charset=utf-8"];
     [header appendFormat:@"Content-Length: %lu\r\n", (unsigned long)data.length];
@@ -603,7 +608,7 @@ static NSString *ISPercentEncode(NSString *value) {
     NSDictionary *info = @{
         @"ok": @YES,
         @"app": @"ISend",
-        @"version": ISAppVersion,
+        @"version": ISAppVersion(),
         @"device": ISDeviceName(),
         @"host": ISLocalHostName(),
         @"root": root,
@@ -786,7 +791,7 @@ static NSString *ISPercentEncode(NSString *value) {
     NSMutableString *header = [NSMutableString string];
     [header appendFormat:@"HTTP/1.1 %d %@\r\n", partial ? 206 : 200,
                          ISStatusText(partial ? 206 : 200)];
-    [header appendFormat:@"Server: ISend/%@\r\n", ISAppVersion];
+    [header appendFormat:@"Server: ISend/%@\r\n", ISAppVersion()];
     [header appendFormat:@"Date: %@\r\n", ISHTTPDate()];
     [header appendFormat:@"Content-Type: %@\r\n", mime];
     [header appendFormat:@"Content-Length: %llu\r\n", length];
@@ -836,15 +841,22 @@ static NSString *ISPercentEncode(NSString *value) {
                       fd:(int)fd
                   buffer:(NSMutableData *)buffer
                    outFD:(int)out
-                 written:(unsigned long long *)written {
+                 written:(unsigned long long *)written
+               errorCode:(int *)errorCode {
     unsigned long long remaining = length;
     while (remaining > 0) {
         if (buffer.length == 0) {
-            if (!ISReceiveMore(fd, buffer)) { return NO; }
+            if (!ISReceiveMore(fd, buffer)) {
+                if (errorCode) { *errorCode = errno ? errno : -1; }
+                return NO;
+            }
             continue;
         }
         NSUInteger take = (NSUInteger)MIN((unsigned long long)buffer.length, remaining);
-        if (!ISWriteFileAll(out, buffer.bytes, take)) { return NO; }
+        if (!ISWriteFileAll(out, buffer.bytes, take)) {
+            if (errorCode) { *errorCode = errno ? errno : -1; }
+            return NO;
+        }
         [buffer replaceBytesInRange:NSMakeRange(0, take) withBytes:NULL length:0];
         remaining -= take;
         *written += take;
@@ -876,13 +888,20 @@ static NSString *ISPercentEncode(NSString *value) {
 - (BOOL)consumeChunkedBody:(int)fd
                     buffer:(NSMutableData *)buffer
                      outFD:(int)out
-                   written:(unsigned long long *)written {
+                   written:(unsigned long long *)written
+                 errorCode:(int *)errorCode {
     while (YES) {
         NSString *line = [self readLineFrom:fd buffer:buffer];
-        if (!line) { return NO; }
+        if (!line) {
+            if (errorCode) { *errorCode = errno ? errno : -1; }
+            return NO;
+        }
 
         unsigned long long chunkLength = 0;
-        if (sscanf([line UTF8String], "%llx", &chunkLength) != 1) { return NO; }
+        if (sscanf([line UTF8String], "%llx", &chunkLength) != 1) {
+            if (errorCode) { *errorCode = -2; }  // cabecera de bloque invalida
+            return NO;
+        }
 
         if (chunkLength == 0) {
             NSString *trailer = nil;
@@ -894,16 +913,25 @@ static NSString *ISPercentEncode(NSString *value) {
 
         unsigned long long remaining = chunkLength;
         while (remaining > 0) {
-            if (buffer.length == 0 && !ISReceiveMore(fd, buffer)) { return NO; }
+            if (buffer.length == 0 && !ISReceiveMore(fd, buffer)) {
+                if (errorCode) { *errorCode = errno ? errno : -1; }
+                return NO;
+            }
             NSUInteger take = (NSUInteger)MIN((unsigned long long)buffer.length, remaining);
-            if (!ISWriteFileAll(out, buffer.bytes, take)) { return NO; }
+            if (!ISWriteFileAll(out, buffer.bytes, take)) {
+                if (errorCode) { *errorCode = errno ? errno : -1; }
+                return NO;
+            }
             [buffer replaceBytesInRange:NSMakeRange(0, take) withBytes:NULL length:0];
             remaining -= take;
             *written += take;
         }
 
         NSString *crlf = [self readLineFrom:fd buffer:buffer];
-        if (!crlf) { return NO; }
+        if (!crlf) {
+            if (errorCode) { *errorCode = errno ? errno : -1; }
+            return NO;
+        }
     }
 }
 
@@ -947,18 +975,23 @@ static NSString *ISPercentEncode(NSString *value) {
     }
 
     unsigned long long written = 0;
+    int ioError = 0;
     BOOL ok;
     if (request.chunked) {
-        ok = [self consumeChunkedBody:fd buffer:buffer outFD:out written:&written];
+        ok = [self consumeChunkedBody:fd buffer:buffer outFD:out written:&written
+                            errorCode:&ioError];
     } else {
         ok = [self consumeFixedBody:request.contentLength fd:fd buffer:buffer
-                              outFD:out written:&written];
+                              outFD:out written:&written errorCode:&ioError];
     }
     close(out);
 
     if (!ok) {
         [[NSFileManager defaultManager] removeItemAtPath:temporary error:NULL];
-        [self sendError:@"La transferencia se interrumpió" status:400 fd:fd];
+        [self sendJSON:@{ @"ok": @NO,
+                          @"error": @"La transferencia se interrumpió",
+                          @"code": @(ioError) }
+                status:400 fd:fd head:NO];
         return;
     }
 

@@ -6,7 +6,16 @@
 #import <string.h>
 #import <stdlib.h>
 
-NSString * const ISAppVersion = @"1.0.0";
+NSString *ISAppVersion(void) {
+    static NSString *version = nil;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        NSString *value = [[NSBundle mainBundle]
+                           objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+        version = value.length ? [value copy] : @"0.0.0";
+    });
+    return version;
+}
 
 NSString *ISAppDocumentsDirectory(void) {
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
