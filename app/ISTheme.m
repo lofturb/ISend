@@ -17,7 +17,7 @@
 + (UIColor *)separator    { return [ISTheme colorWithHex:0x24314A alpha:1.0]; }
 + (UIColor *)textPrimary  { return [ISTheme colorWithHex:0xF2F6FF alpha:1.0]; }
 + (UIColor *)textSecondary{ return [ISTheme colorWithHex:0x93A2BF alpha:1.0]; }
-+ (UIColor *)textTertiary { return [ISTheme colorWithHex:0x64748F alpha:1.0]; }
++ (UIColor *)textTertiary { return [ISTheme colorWithHex:0x7C8AA3 alpha:1.0]; }
 + (UIColor *)accent       { return [ISTheme colorWithHex:0x3DDC97 alpha:1.0]; }
 + (UIColor *)accentDark   { return [ISTheme colorWithHex:0x1B9E6B alpha:1.0]; }
 + (UIColor *)accentSoft   { return [ISTheme colorWithHex:0x3DDC97 alpha:0.16]; }

@@ -106,7 +106,7 @@ El resultado queda en `app/packages/`.
 
 ## Uso
 
-1. Abre **ISend** en el iPad y pulsa **Iniciar servidor**.
+1. Abre **ISend** en el iPad: el servidor arranca solo (si lo habías detenido, pulsa **Iniciar servidor**).
 2. Aparece una dirección tipo `http://192.168.1.42:8080` y un QR.
 3. En el PC, abre esa dirección en el navegador (o escanea el QR con el móvil).
 4. Para enviar: arrastra archivos a la zona superior o pulsa **Elegir archivos** / **Fotos** / **Carpeta**.

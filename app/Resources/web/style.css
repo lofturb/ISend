@@ -223,7 +223,7 @@ body {
 .dest {
     margin: 14px 0 0;
     font-size: 12px;
-    color: #64748f;
+    color: #7c8aa3;
 }
 
 .dest code {
@@ -289,7 +289,7 @@ body {
     border: 0;
     border-radius: 8px;
     background: transparent;
-    color: #64748f;
+    color: #7c8aa3;
     font-size: 17px;
     line-height: 1;
     cursor: pointer;
@@ -440,7 +440,7 @@ body {
 .free {
     flex: 0 0 auto;
     font-size: 12px;
-    color: #64748f;
+    color: #7c8aa3;
     white-space: nowrap;
 }
 
@@ -512,7 +512,7 @@ body {
 
 .file-meta {
     margin-top: 2px;
-    color: #64748f;
+    color: #7c8aa3;
     font-size: 12px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -539,9 +539,9 @@ body {
     border: 1px solid transparent;
     border-radius: 9px;
     background: transparent;
-    color: #7f8fae;
+    color: #93a2bf;
     font-family: inherit;
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1;
     text-decoration: none;
     cursor: pointer;
@@ -563,7 +563,7 @@ body {
     flex-direction: column;
     padding: 34px 12px 40px;
     text-align: center;
-    color: #64748f;
+    color: #7c8aa3;
     font-size: 13px;
 }
 
@@ -574,7 +574,7 @@ body {
 .loading {
     padding: 22px 12px 28px;
     text-align: center;
-    color: #64748f;
+    color: #7c8aa3;
     font-size: 13px;
 }
 
@@ -584,7 +584,7 @@ body {
     justify-content: center;
     align-items: center;
     padding: 18px 0 26px;
-    color: #56658a;
+    color: #74849f;
     font-size: 12px;
     text-align: center;
 }
@@ -691,7 +691,7 @@ body {
 
     .file-name { font-size: 14px; }
 
-    .action-btn { width: 32px; height: 32px; font-size: 14px; }
+    .action-btn { width: 32px; height: 32px; font-size: 16px; }
 
     .file-actions > * + * { margin-left: 0; }
 
@@ -704,7 +704,7 @@ body {
     .toast { bottom: 82px; }
 }
 
-@media (max-width: 380px) {
+@media (max-width: 340px) {
     .brand-sub { display: none; }
     .net { max-width: 48%; }
     .free { display: none; }

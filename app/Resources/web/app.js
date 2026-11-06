@@ -676,17 +676,8 @@
             renderList();
         };
 
-        $('dropzone').onkeydown = function (event) {
-            if (event.key === 'Enter' || event.key === ' ' || event.keyCode === 13) {
-                event.preventDefault();
-                if (!state.allowUpload) {
-                    toast('El iPad tiene desactivadas las subidas.', true);
-                    return;
-                }
-                $('fileInput').click();
-            }
-        };
-
+        // El contenedor no es un boton (contiene botones): con teclado se usan
+        // los botones de dentro, pero un clic en el hueco libre tambien sube.
         $('dropzone').onclick = function (event) {
             var node = event.target;
             while (node && node !== this) {

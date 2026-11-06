@@ -16,7 +16,7 @@ Transferencia de archivos por Wi-Fi entre el iPad y cualquier navegador.
 1. Descarga el `.ipa` de esta Release.
 2. Conecta el iPad por USB y confía en el ordenador.
 3. Instala con AppSync Unified (jailbreak) usando Filza o `ideviceinstaller -i ISend.ipa`.
-4. Abre **ISend** y pulsa **Iniciar servidor**.
+4. Abre **ISend**: el servidor arranca solo con la última dirección y puerto usados.
 5. Conecta el ordenador o el móvil a la **misma Wi-Fi** y abre la dirección que aparece.
 
 ## Notas
